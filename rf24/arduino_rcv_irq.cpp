@@ -116,7 +116,7 @@ void setup(void)
 {
 	// setup interrupt
 	gpio_export(int_gpio_num);
-	gpio_set_edge(GPIO_STR, "rising", "1");
+	gpio_set_edge(GPIO_STR, "rising", "1"); //отслеживаем переход из неактивного состояния  активное
 
 	radio.begin();
 	// enable dynamic payloads

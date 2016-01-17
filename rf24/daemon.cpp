@@ -109,7 +109,20 @@ void setup(void) {
 }
 
 void gotData(void) {
-    
+    bool rx = 0, blnTXOK = 0, blnTXFail = 0;
+    intResult = 0;
+    uint8_t pipe_num = 0;
+    radio.whatHappened(blnTXOK, blnTXFail, rx, &pipe_num);
+    if(blnTXFail) {
+	intResult = 2;
+    }else if(blnTXOK) {
+	intResult = 1;
+    }else if(rx) {
+	intResult = 3;
+	uint8_t len = radio.getDynamicPayloadSize();
+	bool more_available - true;
+	while(moreavailable){
+	    
 }
 
 char* getTime() { //функция возвращает форматированную дату и время

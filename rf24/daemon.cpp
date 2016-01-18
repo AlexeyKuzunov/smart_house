@@ -33,6 +33,7 @@ RF24 radio(SUNXI_GPB(13), SUNXI_GPI(10), "/dev/spidev0.0");
 
 int gpio_fd;
 uint8_t intResult;
+char receive_payload[32+1];
 
 int gpio_export(unsigned int gpio) { //добавление порта gpio
     int fd, len;
@@ -121,8 +122,18 @@ void gotData(void) {
 	intResult = 3;
 	uint8_t len = radio.getDynamicPayloadSize();
 	bool more_available - true;
-	while(moreavailable){
+	while(more_available){
+	    more_available = radio.read(receive_payload, len);
+	    receive_payload[len] = 0;
 	    
+	    //обрабатываем принятые данные
+	    
+	    if (moreavailable) {
+		len = radio.getDynamicPayloadSize();
+	    }
+	}
+    }
+    fflush(stdout);
 }
 
 char* getTime() { //функция возвращает форматированную дату и время
@@ -173,9 +184,10 @@ int writeLog(char msg[256]) { //функция записи в лог
 
 int main(int argc, char* argv[]) {
     writeLog("Daemon Start");
-
     pid_t parpid, sid;
-
+    
+    setup();
+        
     parpid = fork(); //создаем дочерний процесс
     if(parpid < 0) {
 	exit(1);
@@ -198,13 +210,36 @@ int main(int argc, char* argv[]) {
 }
 
 int Daemon(void) { //бесконечный цикл демона
-    char *log;
+//    char *log;
+
+    gpio_fd = gpio_fd_open(GPIO_STR);
+    struct pollfd fdset[1];
+    int nfds = 1;
+    int rc, timeout, len;
+    char *buf[MAX_BUF];
+    timeout = -1;
+
     while(1) {
-	log = getCommand("who");
-	if(strlen(log) > 5) {
-	    writeLog(log);
+	memset((void*)fdset, 0, sizeof(fdset));
+	fdset[0].fd = gpio_fd;
+	fdset[0].events = POLLPRI;
+	rc = poll(fdset, nfds, timeout);
+	if(rc < 0) {
+	    writeLog("\npoll() failed!\n");	    
 	}
-	sleep(600); //ждем 10 минут до следующей итерации
+	if(rc == 0) {
+	    
+	}
+
+	if(fdset[0].revents & POLLPRI) {
+	    len = read(fdset[0].fd, buf, MAX_BUF);
+	    gotData();
+	}
+//	log = getCommand("who");
+//	if(strlen(log) > 5) {
+//	    writeLog(log);
+	}
+//	sleep(600); //ждем 10 минут до следующей итерации
     }
     return 0;
 }

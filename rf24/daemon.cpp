@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <syslog.h>
+#include <sys/stat.h>
 
 #include "gpio_sun7i.h"
 #include <cstdlib>
@@ -16,6 +17,7 @@
 using namespace std;
 
 int Daemon(void);
+void gotData(void);
 char* getTime();
 int writeLog(char msg[256]);
 char* getCommand(char command[128]);
@@ -89,53 +91,6 @@ int gpio_fd_close(int fd) {
     return close(fd);
 }
 
-void setup(void) {
-    gpio_export(int_gpio_num);
-    gpio_set_edge(GPIO_STR, "rising", "1");
-    
-    radio.begin();
-    //enable dynamic payloads
-    radio.enableAckPayload();
-    radio.enableDynamicPayloads();
-    radio.setAutoAck(1);
-    radio.setRetries(15, 15);
-    radio.setDataRate(RF24_2MBPS);
-    radio.setPALevel(RF24_PA_MIN);
-    radio.setChannel(50);
-    radio.setCRCLength(RF24_CRC_16);
-    radio.openReadingPipe(0, pipes[0]); //открываем канал ..
-    radio.openReadingPipe(1, pipes[1]);
-    radio.startListening(); //стартуем чтение
-    //radio.printDetails(); //показываем регистры передатчика
-}
-
-void gotData(void) {
-    bool rx = 0, blnTXOK = 0, blnTXFail = 0;
-    intResult = 0;
-    uint8_t pipe_num = 0;
-    radio.whatHappened(blnTXOK, blnTXFail, rx, &pipe_num);
-    if(blnTXFail) {
-	intResult = 2;
-    }else if(blnTXOK) {
-	intResult = 1;
-    }else if(rx) {
-	intResult = 3;
-	uint8_t len = radio.getDynamicPayloadSize();
-	bool more_available - true;
-	while(more_available){
-	    more_available = radio.read(receive_payload, len);
-	    receive_payload[len] = 0;
-	    
-	    //обрабатываем принятые данные
-	    
-	    if (moreavailable) {
-		len = radio.getDynamicPayloadSize();
-	    }
-	}
-    }
-    fflush(stdout);
-}
-
 char* getTime() { //функция возвращает форматированную дату и время
     time_t now;
     struct tm *ptr;
@@ -182,12 +137,31 @@ int writeLog(char msg[256]) { //функция записи в лог
     return 0;
 }
 
+
+void setup(void) {
+    gpio_export(int_gpio_num);
+    gpio_set_edge(GPIO_STR, "rising", "1");
+    
+    radio.begin();
+    //enable dynamic payloads
+    radio.enableAckPayload();
+    radio.enableDynamicPayloads();
+    radio.setAutoAck(1);
+    radio.setRetries(15, 15);
+    radio.setDataRate(RF24_2MBPS);
+    radio.setPALevel(RF24_PA_MIN);
+    radio.setChannel(50);
+    radio.setCRCLength(RF24_CRC_16);
+    radio.openReadingPipe(0, pipes[0]); //
+    radio.openReadingPipe(1, pipes[1]);
+    
+    radio.startListening(); //стартуем чтение
+    //radio.printDetails(); //показываем регистры передатчика
+}
+
 int main(int argc, char* argv[]) {
     writeLog("Daemon Start");
     pid_t parpid, sid;
-    
-    setup();
-        
     parpid = fork(); //создаем дочерний процесс
     if(parpid < 0) {
 	exit(1);
@@ -211,7 +185,7 @@ int main(int argc, char* argv[]) {
 
 int Daemon(void) { //бесконечный цикл демона
 //    char *log;
-
+    setup();
     gpio_fd = gpio_fd_open(GPIO_STR);
     struct pollfd fdset[1];
     int nfds = 1;
@@ -238,8 +212,47 @@ int Daemon(void) { //бесконечный цикл демона
 //	log = getCommand("who");
 //	if(strlen(log) > 5) {
 //	    writeLog(log);
-	}
+//	}
 //	sleep(600); //ждем 10 минут до следующей итерации
     }
     return 0;
 }
+
+void gotData(void) {
+    bool rx = 0, blnTXOK = 0, blnTXFail = 0;
+    intResult = 0;
+    uint8_t pipe_num = 0;
+    radio.whatHappened(blnTXOK, blnTXFail, rx, &pipe_num); //читаем регистр
+    if(blnTXFail) { //если данные не отправлены
+	intResult = 2;
+    }else if(blnTXOK) { //если успешно отправили данные
+	intResult = 1;
+    }else if(rx) { //если приbняли данные для чтения
+	intResult = 3;
+	uint8_t len = radio.getDynamicPayloadSize();
+	
+	/* Пытаемся открыть папку /tmp/pipes[pipe_num]. Если ее нет, создаем.
+    	   В папке создаем файлы import - для принятых данных и export для ввода команд 
+    	   Помещаем в файл Import принятые данные */
+	
+
+	//Пишем принятые данные в файл /tmp/pipes[pipe_num]/import
+
+	bool more_available = true;
+	while(more_available){
+	    more_available = radio.read(receive_payload, len);
+	    receive_payload[len] = 0;
+	    
+	    //обрабатываем принятые данные
+	    
+	    if (more_available) {
+		len = radio.getDynamicPayloadSize();
+	    }
+	} 
+
+    }
+    
+    fflush(stdout);
+}
+
+

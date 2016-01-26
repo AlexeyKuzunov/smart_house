@@ -2,7 +2,8 @@
 #include <cstdlib>
 #include <iostream>
 #include "RF24.h"
-
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +30,7 @@ char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating 
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define MAX_BUF 64
+#define DIR_PIPES "/tmp/rf24_1"
 
 /****************************************************************
  * gpio_export
@@ -133,6 +135,7 @@ void setup(void)
 	// Open pipe for reading
 	radio.openReadingPipe(0, pipes[0]);
 	radio.openReadingPipe(1, pipes[1]);
+	mkdir(DIR_PIPES, 0775);
 	// Start listening
 	radio.startListening();
 	// Dump the configuration of the rf unit for debugging
@@ -147,7 +150,17 @@ void gotData(void){
 	intResult = 0;
 	uint8_t pipe_num = 0;
 	radio.whatHappened(blnTXOK,blnTXFail,rx, &pipe_num);
-
+	int fd;
+	mode_t mode = S_IRUSR | S_IWUSR;
+	int flags = O_WRONLY | O_CREAT;
+	fd = open("/tmp/rf24_1/export", flags, mode);
+	if(fd < 0){
+	    printf("Cannot open file export");
+	}
+	if (fd > 0){
+	    fchmod(fd, 0644);
+	}
+	
 	if(blnTXFail){
 		intResult = 2;
 	}else if(blnTXOK){
@@ -167,7 +180,7 @@ void gotData(void){
 			
 			// Print received packet
 			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
-			
+			write(fd, receive_payload, len);
 			// next payload can be of different size
 			if (more_available){
 				len = radio.getDynamicPayloadSize();
@@ -177,6 +190,7 @@ void gotData(void){
 	}
 //	printf("intResult %d %d %d %d \n\r",blnTXOK,blnTXFail,rx,intResult);
 	fflush (stdout) ;
+	close(fd);
 //	radio.clearInterrupt();
 }
 

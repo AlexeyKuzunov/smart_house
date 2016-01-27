@@ -25,6 +25,10 @@ const int min_payload_size = 4;
 const int max_payload_size = 32;
 const int payload_size_increments_by = 2;
 int next_payload_size = min_payload_size;
+int im_fd;
+int ex_fd;
+
+
 
 char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
 
@@ -150,16 +154,6 @@ void gotData(void){
 	intResult = 0;
 	uint8_t pipe_num = 0;
 	radio.whatHappened(blnTXOK,blnTXFail,rx, &pipe_num);
-	int fd;
-	mode_t mode = S_IRUSR | S_IWUSR;
-	int flags = O_WRONLY | O_CREAT;
-	fd = open("/tmp/rf24_1/export", flags, mode);
-	if(fd < 0){
-	    printf("Cannot open file export");
-	}
-	if (fd > 0){
-	    fchmod(fd, 0644);
-	}
 	
 	if(blnTXFail){
 		intResult = 2;
@@ -180,7 +174,7 @@ void gotData(void){
 			
 			// Print received packet
 			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
-			write(fd, receive_payload, len);
+			write(im_fd, receive_payload, len);
 			// next payload can be of different size
 			if (more_available){
 				len = radio.getDynamicPayloadSize();
@@ -190,7 +184,6 @@ void gotData(void){
 	}
 //	printf("intResult %d %d %d %d \n\r",blnTXOK,blnTXFail,rx,intResult);
 	fflush (stdout) ;
-	close(fd);
 //	radio.clearInterrupt();
 }
 
@@ -203,6 +196,25 @@ int main(int argc, char** argv)
 	int rc, timeout, len;
 	char *buf[MAX_BUF];
 	timeout = -1;
+	mode_t mode = S_IRUSR | S_IWUSR;
+	int flags = O_WRONLY | O_CREAT;
+	
+	//создаем во временном каталоге файл для размещения команд удаленному устройству
+	ex_fd = open("/tmp/rf24_1/export", flags, mode);
+	if(ex_fd < 0){
+	    printf("Cannot open file export");
+	}
+	if (ex_fd > 0){
+	    fchmod(ex_fd, 0666);
+	}
+	//создаем во временном каталоге файл для чтения состояния удаленного устройства
+	im_fd = open("/tmp/rf24_1/import", flags, mode);
+	if(im_fd < 0){
+	    printf("Cannot open file import");
+	}
+	if (im_fd > 0){
+	    fchmod(im_fd, 0644);
+	}
 	
         while(1){
 			memset((void*)fdset, 0, sizeof(fdset));
@@ -232,6 +244,8 @@ int main(int argc, char** argv)
 
 		} 
 
-		gpio_fd_close(gpio_fd);
+	close(im_fd);
+	close(ex_fd);
+	gpio_fd_close(gpio_fd);
         return 0;
 }

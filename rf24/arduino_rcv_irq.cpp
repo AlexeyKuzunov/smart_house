@@ -143,7 +143,7 @@ void setup(void)
 	// Start listening
 	radio.startListening();
 	// Dump the configuration of the rf unit for debugging
-	radio.printDetails();
+//	radio.printDetails();
 }
 
 int gpio_fd;
@@ -164,8 +164,7 @@ void gotData(void){
 		uint8_t len = radio.getDynamicPayloadSize();
 
 		bool more_available = true;
-		while (more_available)
-		{
+		while (more_available){
 			// Fetch the payload, and see if this was the last one.
 			more_available = radio.read( receive_payload, len );
 
@@ -173,7 +172,8 @@ void gotData(void){
 			receive_payload[len] = 0;
 			
 			// Print received packet
-			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
+//			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
+			lseek(im_fd, 0, SEEK_SET);
 			write(im_fd, receive_payload, len);
 			// next payload can be of different size
 			if (more_available){
@@ -183,8 +183,22 @@ void gotData(void){
 	
 	}
 //	printf("intResult %d %d %d %d \n\r",blnTXOK,blnTXFail,rx,intResult);
-	fflush (stdout) ;
+//	fflush (stdout) ;
 //	radio.clearInterrupt();
+}
+
+void transData(void){
+	ssize_t ret;
+	char ex_txt[2];
+	ret = read(ex_fd, ex_txt, 2);
+//	if (ret < 0){
+//	        printf("Cannot read file export");
+//	}
+	if (ex_txt[2] != receive_payload[2]){
+	radio.stopListening();
+	radio.write(ex_txt, 2);
+	radio.startListening();
+	}
 }
 
 int main(int argc, char** argv)
@@ -238,6 +252,7 @@ int main(int argc, char** argv)
 				len = read(fdset[0].fd, buf, MAX_BUF);
 //				printf("1.poll() GPIO interrupt occurred. reading %s\n", buf);
 				gotData();
+				transData();
 			}
 
 			fflush(stdout);

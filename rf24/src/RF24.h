@@ -18,9 +18,9 @@
 #include "RF24_config.h"
 #include "spi.h"
 #ifdef GPIO_SUN7I
-	#include "gpio_sun7i.h"
+#include "gpio_sun7i.h"
 #elif defined GPIO_SUN4I
-	#include "gpio_sun4i.h"
+#include "gpio_sun4i.h"
 #endif
 
 
@@ -179,6 +179,7 @@ protected:
    */
   uint8_t flush_tx(void);
 
+
   /**
    * Retrieve the current status of the chip
    *
@@ -249,6 +250,7 @@ protected:
   /**@}*/
 
 public:
+
   /**
    * @name Primary public interface
    *

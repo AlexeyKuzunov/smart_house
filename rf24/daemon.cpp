@@ -137,7 +137,6 @@ int writeLog(char msg[256]) { //функция записи в лог
     return 0;
 }
 
-
 void setup(void) {
     gpio_export(int_gpio_num);
     gpio_set_edge(GPIO_STR, "rising", "1");

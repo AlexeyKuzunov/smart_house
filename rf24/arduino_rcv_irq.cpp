@@ -21,16 +21,16 @@ const int int_gpio_num = 3;
 // CSN - PD02
 RF24 radio(SUNXI_GPB(13), SUNXI_GPI(10), "/dev/spidev0.0");
 
-const int min_payload_size = 4;
-const int max_payload_size = 32;
-const int payload_size_increments_by = 2;
-int next_payload_size = min_payload_size;
+// const int min_payload_size = 4;
+// const int max_payload_size = 32;
+// const int payload_size_increments_by = 2;
+// int next_payload_size = min_payload_size;
 int im_fd;
 int ex_fd;
 
 
 
-char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
+char receive_payload[2+1]; // +1 to allow room for a terminating NULL char
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define MAX_BUF 64
@@ -132,7 +132,7 @@ void setup(void)
 	// optionally, increase the delay between retries & # of retries
 	radio.setRetries(15, 15);
 	radio.setDataRate(RF24_2MBPS);
-	radio.setPALevel(RF24_PA_MIN);
+	radio.setPALevel(RF24_PA_HIGH);
 	radio.setChannel(50);
 	radio.setCRCLength(RF24_CRC_16);
 	// Open pipes to other nodes for communication
@@ -146,10 +146,29 @@ void setup(void)
 //	radio.printDetails();
 }
 
+void transData(void){
+	ssize_t ret;
+	bool send_res = 0;
+	char ex_txt[2];
+	ret = read(ex_fd, ex_txt, 2);
+	if (ret < 0){
+	        printf("Cannot read file export");
+	}
+//	if (ex_txt != receive_payload){
+	radio.stopListening();
+	while(send_res == 0){
+		send_res = radio.write(ex_txt, strlen(ex_txt));
+		printf("%i", send_res);
+	}
+	radio.startListening();
+//	}
+}
+
+
 int gpio_fd;
 
 uint8_t intResult;
-void gotData(void){
+int gotData(void){
 	bool rx = 0, blnTXOK = 0, blnTXFail = 0;
 	intResult = 0;
 	uint8_t pipe_num = 0;
@@ -175,31 +194,20 @@ void gotData(void){
 //			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
 			lseek(im_fd, 0, SEEK_SET);
 			write(im_fd, receive_payload, len);
+			
 			// next payload can be of different size
 			if (more_available){
-				len = radio.getDynamicPayloadSize();
+			return 1;
+			//	len = radio.getDynamicPayloadSize();
+			//
 			}
 		}
-	
 	}
 //	printf("intResult %d %d %d %d \n\r",blnTXOK,blnTXFail,rx,intResult);
 //	fflush (stdout) ;
 //	radio.clearInterrupt();
 }
 
-void transData(void){
-	ssize_t ret;
-	char ex_txt[2];
-	ret = read(ex_fd, ex_txt, 2);
-//	if (ret < 0){
-//	        printf("Cannot read file export");
-//	}
-	if (ex_txt[2] != receive_payload[2]){
-	radio.stopListening();
-	radio.write(ex_txt, 2);
-	radio.startListening();
-	}
-}
 
 int main(int argc, char** argv)
 {
@@ -211,7 +219,7 @@ int main(int argc, char** argv)
 	char *buf[MAX_BUF];
 	timeout = -1;
 	mode_t mode = S_IRUSR | S_IWUSR;
-	int flags = O_WRONLY | O_CREAT;
+	int flags = O_RDWR | O_CREAT;
 	
 	//создаем во временном каталоге файл для размещения команд удаленному устройству
 	ex_fd = open("/tmp/rf24_1/export", flags, mode);
@@ -251,8 +259,11 @@ int main(int argc, char** argv)
 			if (fdset[0].revents & POLLPRI) {
 				len = read(fdset[0].fd, buf, MAX_BUF);
 //				printf("1.poll() GPIO interrupt occurred. reading %s\n", buf);
-				gotData();
+			while (gotData()){	
 				transData();
+			}    
+//				
+				
 			}
 
 			fflush(stdout);

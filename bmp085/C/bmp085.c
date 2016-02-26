@@ -236,23 +236,17 @@ unsigned int bmp085_GetTemperature(unsigned int ut)
 
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 
 {
-
-   bmp085_Calibration();
-
-   temperature = bmp085_GetTemperature(bmp085_ReadUT());
-   pressure = bmp085_GetPressure(bmp085_ReadUP());
-//        altitude = bmp085_Altitude(pressure);
-
-      printf("%0.2f/", ((double)pressure)/133);
-   printf("%0.2f",((double)temperature)/10);
-
-
- //  printf("Temperature\t%0.2f *C\n", ((double)temperature/10));
- //  printf("Pressure\t%0.2f hPa\n", ((double)pressure)/133;
-//        printf("Altitude\t%0.1f Feet\n", ((double)altitude)*3.280839895);
-
-   return 0;
+    bmp085_Calibration();
+    temperature = bmp085_GetTemperature(bmp085_ReadUT());
+    pressure = bmp085_GetPressure(bmp085_ReadUP());
+//    altitude = bmp085_Altitude(pressure);
+//    printf("%0.2f/", ((double)pressure)/133);
+//    printf("%0.2f",((double)temperature)/10);
+    printf("Temperature\t%0.2f *C\n", ((double)temperature/10));
+    printf("Pressure\t%0.2f hPa\n", ((double)pressure)/133);
+//    printf("Altitude\t%0.1f Feet\n", ((double)altitude)*3.280839895);
+    return 0;
 }

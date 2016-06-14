@@ -5,6 +5,11 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SH_VS", "SH_VS.vcxproj", "{EEBB530C-78CC-4C12-954D-4F194D128AE4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{38D9BA39-5929-40E9-879D-FA09A0326EAD}"
+	ProjectSection(SolutionItems) = preProject
+		ASLibrary.h = ASLibrary.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

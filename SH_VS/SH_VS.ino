@@ -4,26 +4,25 @@
  Author:	Алексей
 */
 
-// the setup function runs once when you press reset or power the board
 #include <OneWire.h>
 #include <RF24_config.h>
 #include <RF24.h>
 #include <nRF24L01.h>
 #include <SPI.h>
-#include <ASLibrary.h>
+#include "ASLibrary.h"
 #include <avr/sleep.h>
 
 
 #define NumSensors 2
 
-OneWire ds(5);      //Создаем датчик DS18B20 на 5 пине
+OneWire ds(2);      //Создаем датчик DS18B20 на 2 пине
 
 AS_SensorStatus MySensors[NumSensors] = {
 	0,0,"18B20_temp(C)",
 	0,0,"Batt_pow(V)" };
 
 RF24 radio(8, 7);
-const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
+const uint64_t pipes[2] = { 0xF0F0F0F0E2LL, 0xF0F0F0F0E1LL };
 
 //Возвращает значение температуры с датчика 18B20
 float Get_18B20_Data() {
@@ -40,6 +39,21 @@ float Get_18B20_Data() {
 	int Temp = (DSdata[1] << 8) + DSdata[0];
 	return (float)Temp / 16;
 }
+
+//Функция определения напряжения питания устройства
+static float vccRead(byte us = 250) {
+	ADMUX = 1 << REFS0; // опорное напряжение - Vcc
+	ADMUX |= 0x0E;
+	// объект измерения - внутренний источник
+	// стабилизированного напряжения 1.1В
+	delayMicroseconds(us);
+	ADCSRA |= 1 << ADSC;			//запуск АЦ-преобразования
+	while (ADCSRA & (1 << ADSC));	// и ожидание его завершения
+	word x = ADC;
+	//return (1125300L / x)/1000;
+	return x ? (1100L * 1023) / x : -1;
+}
+
 
 //Вычисляет все данные и заполняет массив значений датчиков
 byte CalculateAllData() {
@@ -84,20 +98,20 @@ AS_Answer ExecuteCommand(AS_Command MyCommand) {
 
 void setup() {
 	Serial.begin(9600);
-	MySensors[0].Status = 0;
-	MySensors[1].Status = 0;
+	//MySensors[0].Status = 0;
+	//MySensors[1].Status = 0;
 	
-	radio.begin();
-	radio.openWritingPipe(pipes[0]);
-	radio.openReadingPipe(1, pipes[1]);
+	//radio.begin();
+	//radio.openWritingPipe(pipes[0]);
+	//radio.openReadingPipe(1, pipes[1]);
 	
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-	sleep_enable();//Переходим в спящий режим
+	//set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	//sleep_enable();//Переходим в спящий режим
 }
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	AS_Command MyCommand; // Команда
+	/*	AS_Command MyCommand; // Команда
 	AS_Answer  MyAnswer;  // Ответ
 	if (radio.available()) 	{
 	bool done = false;
@@ -106,5 +120,7 @@ void loop() {
 		MyAnswer = ExecuteCommand(MyCommand);
 
 		}
-	}
+	}   */
+	Serial.println(Get_18B20_Data());
+	Serial.println(vccRead()/1000);
 }

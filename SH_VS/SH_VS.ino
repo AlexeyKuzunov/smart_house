@@ -7,22 +7,32 @@
 #include <OneWire.h>
 #include <RF24_config.h>
 #include <RF24.h>
-#include <nRF24L01.h>
+//#include <nRF24L01.h>
 #include <SPI.h>
 #include "ASLibrary.h"
 #include <avr/sleep.h>
 
 
-#define NumSensors 2
+#define NumSensors 3
 
-OneWire ds(2);      //Создаем датчик DS18B20 на 2 пине
+OneWire ds(3);      //Создаем датчик DS18B20 на 2 пине
+
+int Relay = 4;
+boolean stateRelay = LOW;
 
 AS_SensorStatus MySensors[NumSensors] = {
 	0,0,"18B20_temp(C)",
-	0,0,"Batt_pow(V)" };
+	0,0,"Batt_pow(V)",
+	0,0,"Swith"};
 
 RF24 radio(8, 7);
 const uint64_t pipes[2] = { 0xF0F0F0F0E2LL, 0xF0F0F0F0E1LL };
+
+//Переключает реле
+void Switch() {
+	stateRelay = !stateRelay;
+	digitalWrite(Relay, stateRelay);
+}
 
 //Возвращает значение температуры с датчика 18B20
 float Get_18B20_Data() {
@@ -59,6 +69,10 @@ static float vccRead(byte us = 250) {
 byte CalculateAllData() {
 	MySensors[0].Status = 1;
 	MySensors[0].Value = Get_18B20_Data();
+	MySensors[1].Status = 1;
+	MySensors[1].Value = vccRead() / 1000;
+	MySensors[2].Status = 1;
+	MySensors[2].Value = stateRelay;
 	//Serial.print(MySensors[2].Value);
 	return 1;
 }
@@ -67,7 +81,7 @@ AS_Answer ExecuteCommand(AS_Command MyCommand) {
 	AS_Answer  MyAnswer;  // Ответ
 	MyAnswer.Status = 0;
 	MyAnswer.Value = 0;
-	char P[] = "Y";
+	//char P[] = "Y";
 	switch (MyCommand.Command) {
 		case 1: //Получиь количество датчиков
 			MyAnswer.Status = 1;
@@ -77,6 +91,11 @@ AS_Answer ExecuteCommand(AS_Command MyCommand) {
 		case 2: //Рассчитать все значения датчиков
 			MyAnswer.Status = CalculateAllData();
 			///Serial.println("2.");
+			break;
+		case 3:
+			Switch();
+			MyAnswer.Status = 1;
+			MyAnswer.Value = stateRelay;
 			break;
 		case 4: //Получиь значение датчика по номеру
 			//Serial.println("4.");
@@ -96,31 +115,49 @@ AS_Answer ExecuteCommand(AS_Command MyCommand) {
 	return MyAnswer;
 }
 
+void Connect() {
+	AS_Command MyCommand; // Команда
+	AS_Answer  MyAnswer;  // Ответ	
+	if (radio.available()) {
+		radio.read(&MyCommand, sizeof(MyCommand));
+		MyAnswer = ExecuteCommand(MyCommand);
+		Serial.println("Data");
+	}
+	radio.stopListening();
+	radio.write(&MyAnswer, sizeof(MyAnswer));
+	radio.startListening();
+}
+
 void setup() {
 	Serial.begin(9600);
-	//MySensors[0].Status = 0;
-	//MySensors[1].Status = 0;
-	
-	//radio.begin();
-	//radio.openWritingPipe(pipes[0]);
-	//radio.openReadingPipe(1, pipes[1]);
-	
+	pinMode(Relay, OUTPUT);
+	digitalWrite(Relay, stateRelay);
+	attachInterrupt(0, Connect, LOW);
+
+	MySensors[0].Status = 0;
+	MySensors[1].Status = 0;
+	MySensors[2].Status = 0;
+
+	radio.begin();                          // Включение модуля;
+	radio.enableAckPayload(); 			//Разрешение отправки нетипового ответа передатчику
+	radio.enableDynamicPayloads();
+	radio.setChannel(50);                    // Установка канала вещания;
+	radio.setRetries(15, 15);                // Установка интервала и количества попыток "дозвона" до приемника;
+	radio.setDataRate(RF24_2MBPS);        // Установка минимальной скорости;
+	radio.setPALevel(RF24_PA_HIGH);          // Установка максимальной мощности;
+	radio.setAutoAck(1);                    // Установка режима подтверждения приема;
+	radio.setCRCLength(RF24_CRC_16);
+	radio.openWritingPipe(pipes[0]);     // Активация данных для отправки
+	radio.openReadingPipe(1, pipes[1]);   // Активация данных для чтения
+	radio.startListening();                 // Слушаем эфир.
 	//set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	//sleep_enable();//Переходим в спящий режим
 }
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	/*	AS_Command MyCommand; // Команда
-	AS_Answer  MyAnswer;  // Ответ
-	if (radio.available()) 	{
-	bool done = false;
-	while (!done) {
-		done = radio.read(&MyCommand, sizeof(MyCommand));
-		MyAnswer = ExecuteCommand(MyCommand);
-
-		}
-	}   */
-	Serial.println(Get_18B20_Data());
-	Serial.println(vccRead()/1000);
+	//CalculateAllData();
+	Connect();
+	Serial.println(MySensors[0].Value);
+	//Serial.println(vccRead()/1000);
 }

@@ -25,5 +25,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.SH_VS.vsarduino.h" />
+    <ClInclude Include="ASLibrary.h" />
   </ItemGroup>
 </Project>

@@ -245,8 +245,10 @@ int main(int argc, char *argv[])
 //    altitude = bmp085_Altitude(pressure);
 //    printf("%0.2f/", ((double)pressure)/133);
 //    printf("%0.2f",((double)temperature)/10);
-    printf("Temperature\t%0.2f *C\n", ((double)temperature/10));
-    printf("Pressure\t%0.2f hPa\n", ((double)pressure)/133);
+//    printf("Temperature\t%0.2f *C\n", ((double)temperature/10));
+//    printf("Pressure\t%0.2f hPa\n", ((double)pressure)/133);
 //    printf("Altitude\t%0.1f Feet\n", ((double)altitude)*3.280839895);
+      printf("%0.2f ", ((double)temperature/10));
+      printf("%0.2f\n", ((double)pressure)/255);
     return 0;
 }

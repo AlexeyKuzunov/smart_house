@@ -124,16 +124,15 @@ void setup(void)
 	gpio_export(int_gpio_num);
 	gpio_set_edge(GPIO_STR, "rising", "1"); //отслеживаем переход из неактивного состояния  активное
 
-	radio.begin();
+	radio.begin(); //старт работы
 	// enable dynamic payloads
-	radio.enableAckPayload();
+	radio.enableAckPayload(); //Разрешение отправки нетипового ответа передатчику
 	radio.enableDynamicPayloads();
-	radio.setAutoAck(1);
-	// optionally, increase the delay between retries & # of retries
-	radio.setRetries(15, 15);
-	radio.setDataRate(RF24_2MBPS);
-	radio.setPALevel(RF24_PA_HIGH);
-	radio.setChannel(50);
+	radio.setAutoAck(1); //Установка режима подтверждения приема
+	radio.setRetries(15, 15); //Установка интервала и количества попыток "дозвона" до приемника
+	radio.setDataRate(RF24_2MBPS); //Установка минимальной скорости
+	radio.setPALevel(RF24_PA_HIGH); //Установка максимальной мощности
+	radio.setChannel(50); //Установка канала вещания
 	radio.setCRCLength(RF24_CRC_16);
 	// Open pipes to other nodes for communication
 	// Open pipe for reading

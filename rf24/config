@@ -1,0 +1,17 @@
+CB: //Кубик
+{
+	FullName = Cubieboard;
+	pipe = 0xF0F0F0F0E1LL;
+}
+
+LRoom:  //Гостинная
+{
+	FullName = Livingroom;
+	pipe = 0xF0F0F0F0E2LL;
+}
+
+BRoom: //Спальня
+{
+	FullName = Bedroom;
+	pipe = 0xF0F0F0F0E3LL;	
+}

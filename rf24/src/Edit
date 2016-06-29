@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rmate ./gpio.cpp
+rmate ./gpio.h
+rmate ~/smart_house/librf24-sunxi/test/arduino_rcv_irq.cpp
+

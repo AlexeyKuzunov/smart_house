@@ -13,7 +13,7 @@
 using namespace std;
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL,0xF0F0F0F0E2LL};
-const int int_gpio_num = 8;
+const int int_gpio_num = 1;
 #define GPIO_STR "8_ph7"
 
 // CE - PD13

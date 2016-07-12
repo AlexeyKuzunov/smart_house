@@ -4,7 +4,7 @@
 #include "RF24.h"
 #include "ASLibrary.h"
 
-using namespace std;
+//using namespace std;
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL};
 //const int min_payload_size = 4;

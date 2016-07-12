@@ -7,7 +7,7 @@
  */
 
 #include "nRF24L01.h"
-#include "RF24_config.h"
+//#include "RF24_config.h"
 #include "RF24.h"
 #include <unistd.h>
 
@@ -48,16 +48,16 @@ long __millis()
 
 /****************************************************************************/
 
-void RF24::csn(int mode)
-{
-  gpio->sunxi_gpio_output(csn_pin, mode);
-}
+// void RF24::csn(int mode)
+// {
+//   gpio->sunxi_gpio_output(csn_pin, mode);
+// }
 
 /****************************************************************************/
 
 void RF24::ce(int mode)
 {
-  gpio->sunxi_gpio_output(ce_pin, mode);
+  ce_gpio->write_gpio(mode);
 }
 
 /****************************************************************************/
@@ -66,12 +66,12 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
 {
   uint8_t status;
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer(R_REGISTER | (REGISTER_MASK & reg));
   while (len--)
     *buf++ = spi->transfer(0xff);
 
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -80,11 +80,11 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
 
 uint8_t RF24::read_register(uint8_t reg)
 {
-  csn(LOW);
+  //csn(LOW);
   spi->transfer(R_REGISTER | (REGISTER_MASK & reg));
   uint8_t result = spi->transfer(0xff);
 
-  csn(HIGH);
+  //csn(HIGH);
   return result;
 }
 
@@ -94,12 +94,12 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
 {
   uint8_t status;
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
   while ( len-- )
     spi->transfer(*buf++);
 
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -112,10 +112,10 @@ uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 
   IF_SERIAL_DEBUG(printf("write_register(%02x,%02x)\r\n", reg, value));
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
   spi->transfer(value);
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -133,13 +133,13 @@ uint8_t RF24::write_payload(const void* buf, uint8_t len)
 
   //printf("[Writing %u bytes %u blanks]",data_len,blank_len);
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( W_TX_PAYLOAD );
   while ( data_len-- )
     spi->transfer(*current++);
   while ( blank_len-- )
     spi->transfer(0);
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -156,13 +156,13 @@ uint8_t RF24::read_payload(void* buf, uint8_t len)
 
   //printf("[Reading %u bytes %u blanks]",data_len,blank_len);
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( R_RX_PAYLOAD );
   while ( data_len-- )
     *current++ = spi->transfer(0xff);
   while ( blank_len-- )
     spi->transfer(0xff);
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -173,9 +173,9 @@ uint8_t RF24::flush_rx(void)
 {
   uint8_t status;
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( FLUSH_RX );
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -186,9 +186,9 @@ uint8_t RF24::flush_tx(void)
 {
   uint8_t status;
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( FLUSH_TX );
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -199,9 +199,9 @@ uint8_t RF24::get_status(void)
 {
   uint8_t status;
 
-  csn(LOW);
+  //csn(LOW);
   status = spi->transfer( NOP );
-  csn(HIGH);
+  //csn(HIGH);
 
   return status;
 }
@@ -361,9 +361,9 @@ void RF24::printDetails(void)
 void RF24::begin(void)
 {
   spi = new SPI(_spidev, 12000000, 8);
-  gpio = new GPIO();
+  ce_gpio = new GPIO(int_gpio_num, gpio_str, ce_edge, ce_active_low, ce_direction);
 
-  if (gpio->err != 0)
+  if (ce_gpio->err != 0)
   {
      printf("an error occured during initialization! Aborting! \r\n");
      return;
@@ -371,6 +371,8 @@ void RF24::begin(void)
   // just to simulate arduino milis()
   __start_timer();
   // Initialize pins
+  
+  /*
   int ret = 0;
   ret = gpio->sunxi_gpio_set_cfgpin(ce_pin, OUTPUT);
   if (ret != 0)
@@ -386,10 +388,12 @@ void RF24::begin(void)
      goto cleanup_on_fail;
   }
 
-  ret = gpio->sunxi_gpio_output(csn_pin, HIGH);
+  ret = gpio->sunxi_gpio_output(csn_pin, HIGH); 
+
+  */
 
   ce(LOW);
-  csn(HIGH);
+  //csn(HIGH);
   // Must allow the radio time to settle else configuration bits will not necessarily stick.
   // This is actually only required following power up but some settling time also appears to
   // be required after resets too. For full coverage, we'll always assume the worst.
@@ -438,8 +442,8 @@ void RF24::begin(void)
 
   return;
 
-cleanup_on_fail:
-  gpio->sunxi_gpio_cleanup();
+//cleanup_on_fail:
+//  gpio->sunxi_gpio_cleanup();
 }
 
 /****************************************************************************/
@@ -577,10 +581,10 @@ uint8_t RF24::getDynamicPayloadSize(void)
 {
   uint8_t result = 0;
 
-  csn(LOW);
+  //csn(LOW);
   spi->transfer(R_RX_PL_WID);
   result = spi->transfer(0xff);
-  csn(HIGH);
+  //csn(HIGH);
 
   return result;
 }
@@ -731,10 +735,10 @@ void RF24::openReadingPipe(uint8_t child, uint64_t address)
 
 void RF24::toggle_features(void)
 {
-  csn(LOW);
+  //csn(LOW);
   spi->transfer(ACTIVATE);
   spi->transfer(0x73);
-  csn(HIGH);
+  //csn(HIGH);
 }
 
 /****************************************************************************/
@@ -796,14 +800,14 @@ void RF24::writeAckPayload(uint8_t pipe, const void* buf, uint8_t len)
 {
   const uint8_t* current = reinterpret_cast<const uint8_t*>(buf);
 
-  csn(LOW);
+  //csn(LOW);
   spi->transfer(W_ACK_PAYLOAD | (pipe & 0b111));
   const uint8_t max_payload_size = 32;
   uint8_t data_len = min(len, max_payload_size);
   while (data_len--)
     spi->transfer(*current++);
 
-  csn(HIGH);
+  //csn(HIGH);
 }
 
 /****************************************************************************/

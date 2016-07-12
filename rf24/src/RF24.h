@@ -17,17 +17,19 @@
 
 #include "RF24_config.h"
 #include "spi.h"
-#ifdef GPIO_SUN7I
-	#include "gpio_sun7i.h"
-#elif defined GPIO_SUN4I
-	#include "gpio_sun4i.h"
-#endif
+#include "gpio_sun7i.h"
+//#ifdef GPIO_SUN7I
+//	#include "gpio_sun7i.h"
+//#elif defined GPIO_SUN4I
+//	#include "gpio_sun4i.h"
+//#endif
 
 
 void __msleep(int milisec);
 void __usleep(int milisec);
 void __start_timer();
 long __millis();
+
 
 /**
  * Power Amplifier level.
@@ -68,7 +70,7 @@ private:
   uint8_t ack_payload_length; /**< Dynamic size of pending ack payload. */
   uint64_t pipe0_reading_address; /**< Last address set on pipe 0 for reading. */
 
-  GPIO* gpio;
+  GPIO* ce_gpio;
   SPI* spi;
 
 protected:
@@ -96,7 +98,7 @@ protected:
    *
    * @param mode HIGH to take this unit off the SPI bus, LOW to put it on
    */
-  void csn(int mode);
+  // void csn(int mode);
 
   /**
    * Set chip enable

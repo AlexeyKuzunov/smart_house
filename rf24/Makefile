@@ -9,25 +9,17 @@ CCFLAGS=-Ofast -mfpu=vfp -mfloat-abi=hard
 
 all:librf24-sun7i
 
-librf24-sun7i:${OBJDIR}spi.o ${OBJDIR}gpio_sun7i.o ${OBJDIR}RF24_SUN7I.o
-	g++ -shared -Wl,-soname,$@.so.1 ${CCFLAGS} -o ${LIBDIR}${LIBNAME} $^
-
-librf24-sun4i:${OBJDIR}spi.o ${OBJDIR}gpio_sun4i.o ${OBJDIR}RF24_SUN4I.o
+librf24-sun7i:${OBJDIR}spi.o ${OBJDIR}gpio_sun7i.o ${OBJDIR}RF24.o
 	g++ -shared -Wl,-soname,$@.so.1 ${CCFLAGS} -o ${LIBDIR}${LIBNAME} $^
 
 ${OBJDIR}spi.o:src/spi.cpp
-	g++ -Wall -fPIC ${CCFLAGS} -c $^ -o $@
+	g++ -g -Wall -fPIC ${CCFLAGS} -c $^ -o $@
 
 ${OBJDIR}gpio_sun7i.o:src/gpio_sun7i.cpp
-	g++ -Wall -fPIC ${CCFLAGS} -c $^ -o $@
+	g++ -g -Wall -fPIC ${CCFLAGS} -c $^ -o $@
 
-${OBJDIR}gpio_sun4i.o:src/gpio_sun4i.cpp
-	g++ -Wall -fPIC ${CCFLAGS} -c $^ -o $@
-
-${OBJDIR}RF24_SUN7I.o:src/RF24.cpp
-	g++ -Wall -fPIC ${CCFLAGS} -DGPIO_SUN7I -c $^ -o $@
-${OBJDIR}RF24_SUN4I.o:src/RF24.cpp
-	g++ -Wall -fPIC ${CCFLAGS} -DGPIO_SUN4I -c $^ -o $@
+${OBJDIR}RF24.o:src/RF24.cpp
+	g++ -g -Wall -fPIC ${CCFLAGS} -c $^ -o $@
 
 clean:
 	rm -rf ${OBJDIR}*.o ${LIBDIR}${LIBNAME}

@@ -2,21 +2,20 @@
 #include <cstdlib>
 #include <iostream>
 #include "RF24.h"
-#include "ASLibrary.h"
 
-//using namespace std;
+using namespace std;
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL};
-//const int min_payload_size = 4;
-//const int max_payload_size = 32;
-//const int payload_size_increments_by = 2;
-//int next_payload_size = min_payload_size;
+const int min_payload_size = 4;
+const int max_payload_size = 32;
+const int payload_size_increments_by = 2;
+int next_payload_size = min_payload_size;
 
-//char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
+char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
 
-// CE - PB13
-// CSN - PI10
-RF24 radio(SUNXI_GPB(13), SUNXI_GPI(10), "/dev/spidev0.0");
+// CE - PD13
+// CSN - PD02
+RF24 radio(SUNXI_GPB(13), SUNXI_GPB(10), "/dev/spidev0.0");
 
 void setup(void)
 {
@@ -38,25 +37,21 @@ void setup(void)
         // Start listening
         radio.startListening();
         // Dump the configuration of the rf unit for debugging
-        //radio.printDetails();
+        radio.printDetails();
 }
 
 void loop(void)
 {
-        AS_Answer  MyAnswer;
-        AS_Command MyCommand;
-        MyCommand.Command = 3;
-        //MyAnswer.Value = 0;
-	// Ping out.
+        // Ping out.
         // The payload will always be the same, what will change is how much of it we send.
-        //static char send_payload[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ789012";
+        static char send_payload[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ789012";
 
         // First, stop listening so we can talk.
         radio.stopListening();
 
         // Take the time, and send it.  This will block until complete
-        // printf("Now sending length %i...", next_payload_size);
-        radio.write(&MyCommand, sizeof(MyCommand));
+        printf("Now sending length %i...", next_payload_size);
+        radio.write(send_payload, next_payload_size);
 
         // Now, continue listening
         radio.startListening();
@@ -65,28 +60,24 @@ void loop(void)
         long started_waiting_at = __millis();
 
         bool timeout = false;
-        while (!radio.available() && !timeout) {
+        while (!radio.available() && !timeout)
                 if (__millis() - started_waiting_at > 500) timeout = true;
-                //printf("timeout=%i", timeout);
-        }
         // Describe the results
         if (timeout) printf("Failed, response timed out.\n\r");
         else
         {
-                //printf("Read...\n\r");
                 // Grab the response, compare, and send to debugging spew
-                //uint8_t len = radio.getDynamicPayloadSize();
-                radio.read(&MyAnswer, sizeof(MyAnswer));
+                uint8_t len = radio.getDynamicPayloadSize();
+                radio.read(receive_payload, len);
                 // Put a zero at the end for easy printing
-                //receive_payload[len] = 0;
+                receive_payload[len] = 0;
                 // Spew it
-		//bool value = (bool)MyAnswer.Value;
-                printf("Got response value=%d\n\r", (bool)MyAnswer.Value);
+                printf("Got response size=%i value=%s\n\r", len, receive_payload);
         }
         // Update size for next time.
-        //next_payload_size += payload_size_increments_by;
-        //if (next_payload_size > max_payload_size)
-        //        next_payload_size = min_payload_size;
+        next_payload_size += payload_size_increments_by;
+        if (next_payload_size > max_payload_size)
+                next_payload_size = min_payload_size;
 
         sleep(1);
 }
@@ -94,7 +85,7 @@ void loop(void)
 int main(int argc, char** argv)
 {
         setup();
-        loop();
+        while(1) loop();
 
         return 0;
 }

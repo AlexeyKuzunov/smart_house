@@ -26,14 +26,5 @@
 #endif
 
 #define pgm_read_word(p) (*(p))
-//#define ce_edge "none"
-//#define ce_active_low "1" 
-//#define ce_direction "out"
-
-const char* const ce_edge = "none";
-const char* const ce_active_low = "1";
-const char* const ce_direction = "out";
-const char* const gpio_str = "2_pb13";
-const int int_gpio_num = 2;
 
 #endif // __RF24_CONFIG_H__

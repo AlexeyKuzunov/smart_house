@@ -50,14 +50,14 @@ long __millis()
 
 void RF24::csn(int mode)
 {
-  gpio->sunxi_gpio_output(csn_pin, mode);
+  csn_gpio->write_gpio(mode);
 }
 
 /****************************************************************************/
 
 void RF24::ce(int mode)
 {
-  gpio->sunxi_gpio_output(ce_pin, mode);
+  ce_gpio->write_gpio(mode);
 }
 
 /****************************************************************************/
@@ -361,18 +361,22 @@ void RF24::printDetails(void)
 void RF24::begin(void)
 {
   spi = new SPI(_spidev, 12000000, 8);
-  gpio = new GPIO();
+  csn_gpio = new GPIO(csn_pin, "out");
+  ce_gpio = new GPIO(ce_pin, "out");
 
-  if (gpio->err != 0)
+/*  if (gpio->err != 0)
   {
      printf("an error occured during initialization! Aborting! \r\n");
      return;
   }
+*/
+
   // just to simulate arduino milis()
   __start_timer();
   // Initialize pins
-  int ret = 0;
-  ret = gpio->sunxi_gpio_set_cfgpin(ce_pin, OUTPUT);
+  
+//  int ret = 0;
+/*  ret = gpio->sunxi_gpio_set_cfgpin(ce_pin, OUTPUT);
   if (ret != 0)
   {
      printf("an error occured during CE_PIN config! Aborting! \r\n");
@@ -385,11 +389,11 @@ void RF24::begin(void)
      printf("an error occured during CSN_PIN config! Aborting! \r\n");
      goto cleanup_on_fail;
   }
-
-  ret = gpio->sunxi_gpio_output(csn_pin, HIGH);
-
-  ce(LOW);
+*/
+//  ret = gpio->sunxi_gpio_output(csn_pin, HIGH);
   csn(HIGH);
+  ce(LOW);
+  
   // Must allow the radio time to settle else configuration bits will not necessarily stick.
   // This is actually only required following power up but some settling time also appears to
   // be required after resets too. For full coverage, we'll always assume the worst.
@@ -438,8 +442,8 @@ void RF24::begin(void)
 
   return;
 
-cleanup_on_fail:
-  gpio->sunxi_gpio_cleanup();
+//cleanup_on_fail:
+//  gpio->sunxi_gpio_cleanup();
 }
 
 /****************************************************************************/

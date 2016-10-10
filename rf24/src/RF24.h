@@ -68,7 +68,8 @@ private:
   uint8_t ack_payload_length; /**< Dynamic size of pending ack payload. */
   uint64_t pipe0_reading_address; /**< Last address set on pipe 0 for reading. */
 
-  GPIO* gpio;
+  GPIO* csn_gpio;
+  GPIO* ce_gpio;
   SPI* spi;
 
 protected:

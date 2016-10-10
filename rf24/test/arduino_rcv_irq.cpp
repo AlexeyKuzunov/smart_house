@@ -13,12 +13,14 @@
 using namespace std;
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL,0xF0F0F0F0E2LL};
-const int int_gpio_num = 8;
-#define GPIO_STR "8_ph7"
+const int int_gpio_num = 1;
+#define GPIO_STR "1"
+#define SUNXI_GPB_10 4
+#define SUNXI_GPB_13 5
 
-// CE - PD13
-// CSN - PD02
-RF24 radio(SUNXI_GPB(13), SUNXI_GPB(10), "/dev/spidev0.0");
+// CE - PB13
+// CSN - PB10
+RF24 radio(SUNXI_GPB_13, SUNXI_GPB_10, "/dev/spidev0.0");
 
 const int min_payload_size = 4;
 const int max_payload_size = 32;

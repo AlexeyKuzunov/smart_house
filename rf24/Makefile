@@ -30,7 +30,7 @@ ${OBJDIR}RF24_SUN4I.o:src/RF24.cpp
 	g++ -Wall -fPIC ${CCFLAGS} -DGPIO_SUN4I -c $^ -o $@
 
 clean:
-	rm -rf ${OBJDIR}*.o ${LIBDIR}${LIBNAME}
+	rm -rf ${OBJDIR}*.o ${PREFIX}${LIBDIR}${LIBNAME}
 
 install:
 	@echo "[Install]"

@@ -29,7 +29,7 @@ int next_payload_size = min_payload_size;
 
 char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
 
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
+//#define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define MAX_BUF 64
 
 /****************************************************************

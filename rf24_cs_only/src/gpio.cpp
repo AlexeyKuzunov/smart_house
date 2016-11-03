@@ -6,9 +6,9 @@ GPIO::GPIO(unsigned int gpio, const char *direction, const char *edge, const cha
 	int localfd, len;
 	char buf[MAX_BUF];
  	this->pin = gpio;
- 	DIR* dir;
+// 	DIR* dir;
  	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "gpio%d", gpio);
- 	dir = opendir(buf);
+// 	dir = opendir(buf);
 	char c;
 // 	if (dir == NULL){
  		//открываем интерфейс GPIOLIB export и пишем в него номер GPIO, который хотим экспортировать
@@ -87,8 +87,8 @@ int GPIO::write_gpio(unsigned int val){
 
 int GPIO::read_gpio(){
 	char c;
-	int err, len;
-	char buf[MAX_BUF];
+	int err; //, len;
+//	char buf[MAX_BUF];
 	struct pollfd pollfd[1];
 /*	int fd;
 	//открываем для изменения если настроено на выход значение на линии GPIO

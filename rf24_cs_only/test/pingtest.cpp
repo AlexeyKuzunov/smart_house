@@ -25,7 +25,7 @@ void setup(void)
         // optionally, increase the delay between retries & # of retries
         radio.setRetries(15, 15);
         radio.setDataRate(RF24_2MBPS);
-	radio.setChannel(50);
+	radio.setChannel(128);
 	radio.setPALevel(RF24_PA_HIGH);
         // Open pipes to other nodes for communication
         // Open 'our' pipe for writing

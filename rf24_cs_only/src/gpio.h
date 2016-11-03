@@ -65,6 +65,8 @@ enum sunxi_gpio_number {
 //#define TIMEOUT -1
 
 const int MAX_BUF = 64;
+const int timeout = -1;
+
 //const int int_gpio_num = 1;
 const int timeout = -1;
 

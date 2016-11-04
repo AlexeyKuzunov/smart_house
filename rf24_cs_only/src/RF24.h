@@ -617,6 +617,9 @@ public:
    * @param[out] tx_fail The send failed, too many retries (MAX_RT)
    * @param[out] rx_ready There is a message waiting to be read (RX_DS)
    */
+
+  void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready,uint8_t* pipe_num);
+
   void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready);
 
   /**

@@ -5,7 +5,7 @@ LIBNAME=$(LIB).so.1.0
 OBJDIR=obj/
 LIBDIR=../lib/
 
-all:pingtest scanner
+all:pingtest scanner arduino_rcv_irq
 
 pingtest:
 	g++ pingtest.cpp -g -I../src/ -L${LIBDIR} -lrf24-sun7i -o pingtest
@@ -13,5 +13,9 @@ pingtest:
 scanner:
 	g++ scanner.cpp -I../src/ -L${LIBDIR} -lrf24-sun7i -o scanner
 
+arduino_rcv_irq:
+	g++ arduino_rcv_irq.cpp -g -I../src/ -L${LIBDIR} -lrf24-sun7i -o arduino_rcv_irq
+
+
 clean:
-	rm -f scanner pingtest
+	rm -f scanner pingtest arduino_rcv_irq

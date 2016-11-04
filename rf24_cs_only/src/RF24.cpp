@@ -11,7 +11,8 @@
 #include "RF24.h"
 #include <unistd.h>
 
-static struct timeval start, end;
+static struct timeval start, t_end;
+//static struct timeval start, end;
 static long mtime, seconds, useconds;
 
 void __msleep(int milisec)
@@ -37,9 +38,12 @@ void __start_timer()
 
 long __millis()
 {
-  gettimeofday(&end, NULL);
-  seconds  = end.tv_sec  - start.tv_sec;
-  useconds = end.tv_usec - start.tv_usec;
+  gettimeofday(&t_end, NULL);
+  seconds  = t_end.tv_sec  - start.tv_sec;
+  useconds = t_end.tv_usec - start.tv_usec;
+  gettimeofday(&t_end, NULL);
+  seconds  = t_end.tv_sec  - start.tv_sec;
+  useconds = t_end.tv_usec - start.tv_usec;
 
   mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
   return mtime;
@@ -580,14 +584,26 @@ bool RF24::read(void* buf, uint8_t len)
 
 void RF24::whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready)
 {
+    whatHappened(tx_ok, tx_fail, rx_ready, NULL);
+}
+
+void RF24::whatHappened(bool& tx_ok, bool& tx_fail, bool& rx_ready, uint8_t* pipe_num)
+{
   // Read the status & reset the status in one easy call
   // Or is that such a good idea?
   uint8_t status = write_register(STATUS, _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT) );
+
+ //  uint8_t status = get_status();
 
   // Report to the user what happened
   tx_ok = status & _BV(TX_DS);
   tx_fail = status & _BV(MAX_RT);
   rx_ready = status & _BV(RX_DR);
+
+//  if (pipe_num)
+//  {
+//    *pipe_num = (status >> RX_P_NO) & 0b111;
+//  }
 }
 
 /****************************************************************************/

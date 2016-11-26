@@ -17,11 +17,7 @@
 
 #include "RF24_config.h"
 #include "spi.h"
-#ifdef GPIO_SUN7I
-	#include "gpio_sun7i.h"
-#elif defined GPIO_SUN4I
-	#include "gpio_sun4i.h"
-#endif
+#include "gpio.h"
 
 
 void __msleep(int milisec);
@@ -58,7 +54,6 @@ class RF24
 {
 private:
   uint16_t ce_pin; /**< "Chip Enable" pin, activates the RX or TX role */
-  uint16_t csn_pin; /**< SPI Chip select */
   bool wide_band; /* 2Mbs data rate in use? */
   string _spidev;
   bool p_variant; /* False for RF24L01 and true for RF24L01P */
@@ -68,8 +63,7 @@ private:
   uint8_t ack_payload_length; /**< Dynamic size of pending ack payload. */
   uint64_t pipe0_reading_address; /**< Last address set on pipe 0 for reading. */
 
-  GPIO* csn_gpio;
-  GPIO* ce_gpio;
+  GPIO* gpio;
   SPI* spi;
 
 protected:
@@ -87,17 +81,6 @@ protected:
    */
   int init_gpio();
 
-  /**
-   * Set chip select pin
-   *
-   * Running SPI bus at PI_CLOCK_DIV2 so we don't waste time transferring data
-   * and best of all, we make use of the radio's FIFO buffers. A lower speed
-   * means we're less likely to effectively leverage our FIFOs and pay a higher
-   * AVR runtime cost as toll.
-   *
-   * @param mode HIGH to take this unit off the SPI bus, LOW to put it on
-   */
-  void csn(int mode);
 
   /**
    * Set chip enable
@@ -238,15 +221,6 @@ protected:
    * are enabled.  See the datasheet for details.
    */
   void toggle_features(void);
-
-  /**
-   * Clear interrupt flags in the status register
-   *
-   * Interrupts should be cleared after corresponding interrupt processing is completed.
-   * See the datasheet for details.
-   */  
-  void clearInterrupt();
-
   /**@}*/
 
 public:
@@ -264,9 +238,8 @@ public:
    * and send in the unique pins that this chip is connected to.
    *
    * @param _cepin The pin attached to Chip Enable on the RF module
-   * @param _cspin The pin attached to Chip Select
    */
-  RF24(uint16_t _cepin, uint16_t _cspin, string spidev);
+  RF24(uint16_t _cepin,  string spidev);
 
   /**
    * Begin operation of the chip
@@ -330,7 +303,7 @@ public:
    *
    * @param buf Pointer to a buffer where the data should be written
    * @param len Maximum number of bytes to read into the buffer
-   * @return True if there is more data available to be read, false otherwise
+   * @return True if the payload was delivered successfully false if not
    */
   bool read( void* buf, uint8_t len );
 
@@ -643,11 +616,11 @@ public:
    * @param[out] tx_ok The send was successful (TX_DS)
    * @param[out] tx_fail The send failed, too many retries (MAX_RT)
    * @param[out] rx_ready There is a message waiting to be read (RX_DS)
-   * @param[out] pipe_num optional placeholder to store number of the pipe that awaits data (RX_DS)
    */
-  void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready);
-  void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready, uint8_t* pipe_num);
 
+  void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready,uint8_t* pipe_num);
+
+  void whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready);
 
   /**
    * Test whether there was a carrier on the line for the
@@ -678,7 +651,7 @@ public:
  * @example GettingStarted.pde
  *
  * This is an example which corresponds to my "Getting Started" blog post:
- * <a style="text-align:center" href="http://maniacbug.wordpress.com/2011/11/02/getting-started-rf24/">Getting Started with nRF24L01+ on Arduino</a>. 
+ * <a style="text-align:center" href="http://maniacbug.wordpress.com/2011/11/02/getting-started-rf24/">Getting Started with nRF24L01+ on Arduino</a>.
  *
  * It is an example of how to use the RF24 class.  Write this sketch to two
  * different nodes.  Put one of the nodes into 'transmit' mode by connecting
@@ -824,7 +797,7 @@ public:
  *
  * <img src="http://farm7.staticflickr.com/6044/6307669179_a8d19298a6_m.jpg" width="240" height="160" alt="RF24 Getting Started - Finished Product">
  *
- * <a style="text-align:center" href="http://maniacbug.wordpress.com/2011/11/02/getting-started-rf24/">Getting Started with nRF24L01+ on Arduino</a> 
+ * <a style="text-align:center" href="http://maniacbug.wordpress.com/2011/11/02/getting-started-rf24/">Getting Started with nRF24L01+ on Arduino</a>
  *
  * <img src="http://farm8.staticflickr.com/7159/6645514331_38eb2bdeaa_m.jpg" width="240" height="160" alt="Nordic FOB and nRF24L01+">
  *

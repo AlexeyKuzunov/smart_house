@@ -65,14 +65,16 @@ enum sunxi_gpio_number {
 //#define TIMEOUT -1
 
 const int MAX_BUF = 64;
+const int timeout = -1;
+
 //const int int_gpio_num = 1;
+
 
 void __msleep(int milisec);
 
 class GPIO {
 	int pin;
 	int fd;
-	const int timeout = -1;
 public:
 	// открываем порт. pin - номер порта gpio,  
 	// edge - отслеживание состояния линии, active_low - уровень активного сигнала,

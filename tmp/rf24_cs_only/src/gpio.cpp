@@ -1,14 +1,14 @@
 
-#include "gpio_sun7i.h"
+#include "gpio.h"
 
 
 GPIO::GPIO(unsigned int gpio, const char *direction, const char *edge, const char *active_low){
 	int localfd, len;
 	char buf[MAX_BUF];
  	this->pin = gpio;
- 	DIR* dir;
+// 	DIR* dir;
  	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "gpio%d", gpio);
- 	dir = opendir(buf);
+// 	dir = opendir(buf);
 	char c;
 // 	if (dir == NULL){
  		//открываем интерфейс GPIOLIB export и пишем в него номер GPIO, который хотим экспортировать
@@ -62,6 +62,7 @@ GPIO::GPIO(unsigned int gpio, const char *direction, const char *edge, const cha
 	if (GPIO::fd < 0) {
 		perror("gpio/set-value");
 		}
+	//считываем значение
 	read(GPIO::fd, &c, sizeof(c));
 //	printf("%s", c);
 }
@@ -87,8 +88,8 @@ int GPIO::write_gpio(unsigned int val){
 
 int GPIO::read_gpio(){
 	char c;
-	int err, len;
-	char buf[MAX_BUF];
+	int err; //, len;
+//	char buf[MAX_BUF];
 	struct pollfd pollfd[1];
 /*	int fd;
 	//открываем для изменения если настроено на выход значение на линии GPIO

@@ -11,7 +11,8 @@
 #include "RF24.h"
 #include <unistd.h>
 
-static struct timeval start, end;
+static struct timeval start, t_end;
+//static struct timeval start, end;
 static long mtime, seconds, useconds;
 
 void __msleep(int milisec)
@@ -37,91 +38,65 @@ void __start_timer()
 
 long __millis()
 {
-  gettimeofday(&end, NULL);
-  seconds  = end.tv_sec  - start.tv_sec;
-  useconds = end.tv_usec - start.tv_usec;
+  gettimeofday(&t_end, NULL);
+  seconds  = t_end.tv_sec  - start.tv_sec;
+  useconds = t_end.tv_usec - start.tv_usec;
+  gettimeofday(&t_end, NULL);
+  seconds  = t_end.tv_sec  - start.tv_sec;
+  useconds = t_end.tv_usec - start.tv_usec;
 
   mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
   return mtime;
 }
 
 
-/****************************************************************************/
-
-void RF24::csn(int mode)
-{
-  csn_gpio->write_gpio(mode);
-}
 
 /****************************************************************************/
 
 void RF24::ce(int mode)
 {
-  ce_gpio->write_gpio(mode);
+  gpio->write_gpio( mode);
 }
 
 /****************************************************************************/
-
 uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
 {
   uint8_t status;
 
-  csn(LOW);
-  status = spi->transfer(R_REGISTER | (REGISTER_MASK & reg));
-  while (len--)
-    *buf++ = spi->transfer(0xff);
-
-  csn(HIGH);
+  status = spi->read(R_REGISTER | (REGISTER_MASK & reg),buf,len);
 
   return status;
 }
-
 /****************************************************************************/
-
 uint8_t RF24::read_register(uint8_t reg)
 {
-  csn(LOW);
-  spi->transfer(R_REGISTER | (REGISTER_MASK & reg));
-  uint8_t result = spi->transfer(0xff);
-
-  csn(HIGH);
+  uint8_t result = spi->read(R_REGISTER | (REGISTER_MASK & reg));
   return result;
 }
 
 /****************************************************************************/
-
 uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
 {
   uint8_t status;
 
-  csn(LOW);
-  status = spi->transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
-  while ( len-- )
-    spi->transfer(*buf++);
-
-  csn(HIGH);
+  status = spi->write( W_REGISTER | ( REGISTER_MASK & reg ), buf ,len );
 
   return status;
 }
 
 /****************************************************************************/
-
 uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 {
   uint8_t status;
 
   IF_SERIAL_DEBUG(printf("write_register(%02x,%02x)\r\n", reg, value));
 
-  csn(LOW);
-  status = spi->transfer( W_REGISTER | ( REGISTER_MASK & reg ) );
-  spi->transfer(value);
-  csn(HIGH);
+  status = spi->write( W_REGISTER | ( REGISTER_MASK & reg ), value );
 
   return status;
 }
 
 /****************************************************************************/
-
 uint8_t RF24::write_payload(const void* buf, uint8_t len)
 {
   uint8_t status;
@@ -133,36 +108,22 @@ uint8_t RF24::write_payload(const void* buf, uint8_t len)
 
   //printf("[Writing %u bytes %u blanks]",data_len,blank_len);
 
-  csn(LOW);
-  status = spi->transfer( W_TX_PAYLOAD );
-  while ( data_len-- )
-    spi->transfer(*current++);
-  while ( blank_len-- )
-    spi->transfer(0);
-  csn(HIGH);
+  status = spi->write( W_TX_PAYLOAD, current, data_len+blank_len );
 
   return status;
 }
 
 /****************************************************************************/
-
 uint8_t RF24::read_payload(void* buf, uint8_t len)
 {
   uint8_t status;
   uint8_t* current = reinterpret_cast<uint8_t*>(buf);
 
   uint8_t data_len = min(len,payload_size);
-  uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - data_len;
 
   //printf("[Reading %u bytes %u blanks]",data_len,blank_len);
 
-  csn(LOW);
-  status = spi->transfer( R_RX_PAYLOAD );
-  while ( data_len-- )
-    *current++ = spi->transfer(0xff);
-  while ( blank_len-- )
-    spi->transfer(0xff);
-  csn(HIGH);
+  status = spi->read( R_RX_PAYLOAD, current,  data_len);
 
   return status;
 }
@@ -173,9 +134,7 @@ uint8_t RF24::flush_rx(void)
 {
   uint8_t status;
 
-  csn(LOW);
   status = spi->transfer( FLUSH_RX );
-  csn(HIGH);
 
   return status;
 }
@@ -186,9 +145,7 @@ uint8_t RF24::flush_tx(void)
 {
   uint8_t status;
 
-  csn(LOW);
   status = spi->transfer( FLUSH_TX );
-  csn(HIGH);
 
   return status;
 }
@@ -199,9 +156,7 @@ uint8_t RF24::get_status(void)
 {
   uint8_t status;
 
-  csn(LOW);
   status = spi->transfer( NOP );
-  csn(HIGH);
 
   return status;
 }
@@ -265,8 +220,8 @@ void RF24::print_address_register(const char* name, uint8_t reg, uint8_t qty)
 
 /****************************************************************************/
 
-RF24::RF24(uint16_t _cepin, uint16_t _cspin, string spidev):
-  ce_pin(_cepin), csn_pin(_cspin), wide_band(true), p_variant(false), 
+RF24::RF24(uint16_t _cepin,  string spidev):
+  ce_pin(_cepin), wide_band(true), p_variant(false),
   payload_size(32), ack_payload_available(false), dynamic_payloads_enabled(false),
   pipe0_reading_address(0)
 {
@@ -361,8 +316,7 @@ void RF24::printDetails(void)
 void RF24::begin(void)
 {
   spi = new SPI(_spidev, 12000000, 8);
-  csn_gpio = new GPIO(csn_pin, "out");
-  ce_gpio = new GPIO(ce_pin, "out");
+  gpio = new GPIO(ce_pin, "out");
 
 /*  if (gpio->err != 0)
   {
@@ -370,11 +324,9 @@ void RF24::begin(void)
      return;
   }
 */
-
   // just to simulate arduino milis()
   __start_timer();
   // Initialize pins
-  
 //  int ret = 0;
 /*  ret = gpio->sunxi_gpio_set_cfgpin(ce_pin, OUTPUT);
   if (ret != 0)
@@ -382,18 +334,10 @@ void RF24::begin(void)
      printf("an error occured during CE_PIN config! Aborting! \r\n");
      goto cleanup_on_fail;
   }
-
-  ret = gpio->sunxi_gpio_set_cfgpin(csn_pin, OUTPUT);
-  if (ret != 0)
-  {
-     printf("an error occured during CSN_PIN config! Aborting! \r\n");
-     goto cleanup_on_fail;
-  }
 */
-//  ret = gpio->sunxi_gpio_output(csn_pin, HIGH);
-  csn(HIGH);
+
+
   ce(LOW);
-  
   // Must allow the radio time to settle else configuration bits will not necessarily stick.
   // This is actually only required following power up but some settling time also appears to
   // be required after resets too. For full coverage, we'll always assume the worst.
@@ -533,7 +477,6 @@ bool RF24::write(const void* buf, uint8_t len)
   // * There is an ack packet waiting (RX_DR)
   bool tx_ok, tx_fail;
   whatHappened(tx_ok, tx_fail, ack_payload_available);
-  clearInterrupt();
 
   //printf("%u%u%u\r\n",tx_ok,tx_fail,ack_payload_available);
 
@@ -576,15 +519,11 @@ void RF24::startWrite(const void* buf, uint8_t len)
 }
 
 /****************************************************************************/
-
 uint8_t RF24::getDynamicPayloadSize(void)
 {
   uint8_t result = 0;
 
-  csn(LOW);
-  spi->transfer(R_RX_PL_WID);
-  result = spi->transfer(0xff);
-  csn(HIGH);
+  result = spi->read(R_RX_PL_WID);
 
   return result;
 }
@@ -613,6 +552,12 @@ bool RF24::available(uint8_t* pipe_num)
     if (pipe_num)
       *pipe_num = (status >> RX_P_NO) & 0b111;
 
+    // Clear the status bit
+
+    // ??? Should this REALLY be cleared now?  Or wait until we
+    // actually READ the payload?
+
+    write_register(STATUS,_BV(RX_DR) );
 
     // Handle ack payload receipt
     if (status & _BV(TX_DS))
@@ -631,51 +576,35 @@ bool RF24::read(void* buf, uint8_t len)
   // Fetch the payload
   read_payload(buf, len);
 
-  // check if there is more data in RX FIFO (1 - fifo empty)
-  bool rx_fifo_empty = read_register(FIFO_STATUS) & _BV(RX_EMPTY);
-
-  // automatically clear RX_DR interrupt bit if there is nothing more to receive
-  if (rx_fifo_empty){
-    write_register(STATUS,_BV(RX_DR) );
-  }
-
-  return !rx_fifo_empty;
+  // was this the last of the data available?
+  return read_register(FIFO_STATUS) & _BV(RX_EMPTY);
 }
 
 /****************************************************************************/
 
-
-void RF24::whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready){
-	whatHappened(tx_ok, tx_fail, rx_ready, NULL);
+void RF24::whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready)
+{
+    whatHappened(tx_ok, tx_fail, rx_ready, NULL);
 }
 
-void RF24::whatHappened(bool& tx_ok,bool& tx_fail,bool& rx_ready, uint8_t* pipe_num)
+void RF24::whatHappened(bool& tx_ok, bool& tx_fail, bool& rx_ready, uint8_t* pipe_num)
 {
-	/* from NRF24L01 datasheet:
-	1) read payload
-	2) clear RX_RD
-	3) read RX FIFO status
-	4) repeat from 1 if there is data in RX FIFO
+  // Read the status & reset the status in one easy call
+  // Or is that such a good idea?
+  uint8_t status = write_register(STATUS, _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT) );
 
-	So no more interrupt clearing here.
-	*/
-
-  uint8_t status = get_status();
+ //  uint8_t status = get_status();
 
   // Report to the user what happened
   tx_ok = status & _BV(TX_DS);
   tx_fail = status & _BV(MAX_RT);
   rx_ready = status & _BV(RX_DR);
 
-  if (pipe_num){ //copy pipe number
-    *pipe_num = (status >> RX_P_NO) & 0b111;
-  }
+//  if (pipe_num)
+//  {
+//    *pipe_num = (status >> RX_P_NO) & 0b111;
+//  }
 }
-
-void RF24::clearInterrupt(){
-	write_register(STATUS, _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT) );
-}
-
 
 /****************************************************************************/
 
@@ -732,13 +661,11 @@ void RF24::openReadingPipe(uint8_t child, uint64_t address)
 }
 
 /****************************************************************************/
-
 void RF24::toggle_features(void)
 {
-  csn(LOW);
-  spi->transfer(ACTIVATE);
-  spi->transfer(0x73);
-  csn(HIGH);
+
+  spi->write(ACTIVATE, 0x73);
+
 }
 
 /****************************************************************************/
@@ -795,19 +722,15 @@ void RF24::enableAckPayload(void)
 }
 
 /****************************************************************************/
-
 void RF24::writeAckPayload(uint8_t pipe, const void* buf, uint8_t len)
 {
   const uint8_t* current = reinterpret_cast<const uint8_t*>(buf);
-
-  csn(LOW);
-  spi->transfer(W_ACK_PAYLOAD | (pipe & 0b111));
   const uint8_t max_payload_size = 32;
   uint8_t data_len = min(len, max_payload_size);
-  while (data_len--)
-    spi->transfer(*current++);
 
-  csn(HIGH);
+
+  spi->write(W_ACK_PAYLOAD | (pipe & 0b111), current, data_len);
+
 }
 
 /****************************************************************************/

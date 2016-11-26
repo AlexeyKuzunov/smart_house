@@ -1,10 +1,10 @@
-#include "gpio_sun7i.h"
 #include <cstdlib>
 #include <iostream>
 #include "RF24.h"
-
+#include "gpio.h"
 using namespace std;
 
+#define SUNXI_GPB_13 5
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL};
 const int min_payload_size = 4;
 const int max_payload_size = 32;
@@ -13,9 +13,9 @@ int next_payload_size = min_payload_size;
 
 char receive_payload[max_payload_size+1]; // +1 to allow room for a terminating NULL char
 
-// CE - PD13
-// CSN - PD02
-RF24 radio(SUNXI_GPB(13), SUNXI_GPI(10), "/dev/spidev0.0");
+// CE - PI14
+
+RF24 radio(SUNXI_GPB_13, "/dev/spidev0.0");
 
 void setup(void)
 {
@@ -25,15 +25,13 @@ void setup(void)
         // optionally, increase the delay between retries & # of retries
         radio.setRetries(15, 15);
         radio.setDataRate(RF24_2MBPS);
-		radio.setPALevel(RF24_PA_HIGH);
-		radio.setChannel(50);
+	radio.setChannel(128);
+	radio.setPALevel(RF24_PA_HIGH);
         // Open pipes to other nodes for communication
         // Open 'our' pipe for writing
         // Open the 'other' pipe for reading, in position #1 (we can have up to 5 pipes open for reading)
         radio.openWritingPipe(pipes[0]);
         radio.openReadingPipe(1, pipes[1]);
-		radio.setCRCLength(RF24_CRC_16);
-		radio.setAutoAck( true ) ;
         // Start listening
         radio.startListening();
         // Dump the configuration of the rf unit for debugging

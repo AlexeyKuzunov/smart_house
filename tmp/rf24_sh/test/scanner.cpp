@@ -1,17 +1,15 @@
-#include "gpio_sun7i.h"
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "printf.h"
+#include "gpio.h"
 
-// // Hardware configuration // // Set up nRF24L01 radio on
-//SPI bus plus pins 8 & 9
+
 void setup(void);
 void loop(void);
 
-// CE - PD13
-// CSN - PD02
-RF24 radio(SUNXI_GPB(13), SUNXI_GPI(10), "/dev/spidev0.0");
 
+RF24 radio(SUNXI_GPI(14), "/dev/spidev2.0"); // // Channel info
+//
 const short num_channels = 128;
 short values[num_channels]; //
 

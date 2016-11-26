@@ -1,4 +1,4 @@
-#include "gpio_sun7i.h"
+#include "gpio.h"
 #include <cstdlib>
 #include <iostream>
 #include "RF24.h"
@@ -14,13 +14,14 @@ using namespace std;
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL,0xF0F0F0F0E2LL};
 const int int_gpio_num = 1;
+
 #define GPIO_STR "1"
-#define SUNXI_GPB_10 4
+//#define SUNXI_GPB_10 4
 #define SUNXI_GPB_13 5
 
 // CE - PB13
 // CSN - PB10
-RF24 radio(SUNXI_GPB_13, SUNXI_GPB_10, "/dev/spidev0.0");
+RF24 radio(SUNXI_GPB_13, "/dev/spidev0.0");
 
 const int min_payload_size = 4;
 const int max_payload_size = 32;
@@ -163,17 +164,15 @@ void gotData(void){
 		{
 			// Fetch the payload, and see if this was the last one.
 			more_available = radio.read( receive_payload, len );
-
 			// Put a zero at the end for easy printing
 			receive_payload[len] = 0;
-			
 			// Print received packet
 			printf("[%d] Data size=%i value=%s\n\r",pipe_num, len,receive_payload);
-			
 			// next payload can be of different size
 			if (more_available){
 				len = radio.getDynamicPayloadSize();
 			}
+		break;
 		}
 	
 	}
@@ -185,38 +184,38 @@ void gotData(void){
 int main(int argc, char** argv)
 {
         setup();
-		gpio_fd = gpio_fd_open(GPIO_STR);
-		struct pollfd fdset[1];
-		int nfds = 1;
-		int rc, timeout, len;
-		char *buf[MAX_BUF];
-		timeout = -1;
-		
+	gpio_fd = gpio_fd_open(GPIO_STR);
+	struct pollfd fdset[1];
+	int nfds = 1;
+	int rc, timeout, len;
+	char *buf[MAX_BUF];
+	timeout = -1;
+	
         while(1){
-			memset((void*)fdset, 0, sizeof(fdset));
+		memset((void*)fdset, 0, sizeof(fdset));
 
-			fdset[0].fd = gpio_fd;
-			fdset[0].events = POLLPRI;
+		fdset[0].fd = gpio_fd;
+		fdset[0].events = POLLPRI;
 
-//			printf("starting to poll for %d %d %s...\n", int_gpio_num, gpio_fd, GPIO_STR);
-			rc = poll(fdset, nfds, timeout);      
+//		printf("starting to poll for %d %d %s...\n", int_gpio_num, gpio_fd, GPIO_STR);
+		rc = poll(fdset, nfds, timeout);      
 
-			if (rc < 0) {
-				printf("\npoll() failed!\n");
-				return -1;
-			}
+		if (rc < 0) {
+			printf("\npoll() failed!\n");
+			return -1;
+		}
 
-			if (rc == 0) {
-				printf(".");
-			}
+		if (rc == 0) {
+			printf(".");
+		}
 
-			if (fdset[0].revents & POLLPRI) {
-				len = read(fdset[0].fd, buf, MAX_BUF);
-//				printf("1.poll() GPIO interrupt occurred. reading %s\n", buf);
-				gotData();
-			}
+		if (fdset[0].revents & POLLPRI) {
+			len = read(fdset[0].fd, buf, MAX_BUF);
+//			printf("1.poll() GPIO interrupt occurred. reading %s\n", buf);
+			gotData();
+		}
 
-			fflush(stdout);
+		fflush(stdout);
 
 		} 
 

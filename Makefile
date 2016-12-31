@@ -25,7 +25,7 @@ rf24_sh:
 	g++ -Isrc/ src/*.cpp *.cpp -o rf24_sh
 
 clean:
-	rm -rf ${OBJDIR}*.o ${PREFIX}${LIBDIR}${LIBNAME}
+	rm -rf ${OBJDIR}*.o ${PREFIX} ${LIBDIR} ${LIBNAME}
 
 install:
 	@echo "[Install]"

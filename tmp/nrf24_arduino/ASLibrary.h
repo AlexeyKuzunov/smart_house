@@ -1,11 +1,11 @@
 ﻿#ifndef __ASLibrary__
 #define __ASLibrary__
-#define CommentLen 20			      //Длина комментария в сообщении
+#define CommentLen 20		//Длина комментария в сообщении
 #define AS_NRF24L01_payload 5   //Максимальный размер буфера в байтах для трансивера NRF24L01
-								                //должен буть не меньше максимальной длины передаваемых данных
-								                //и не больше 32 (стркутуры _AS_COMMAND и _AS_ANSWER)
+				//должен буть не меньше максимальной длины передаваемых данных
+				//и не больше 32 (стркутуры _AS_COMMAND и _AS_ANSWER)
 #define AS_NRF24L01_channel 77  //канал, на котором работает трансивер NRF24L01
-								//RF Channel 0 - 127 or 0 - 84 in the US, default 0.
+				//RF Channel 0 - 127 or 0 - 84 in the US, default 0.
 
 // Команды состоят из 1 команды и 1 параметра
 // 0 x - Перезагрузка

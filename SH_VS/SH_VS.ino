@@ -9,7 +9,7 @@
 #include <RF24.h>
 //#include <nRF24L01.h>
 #include <SPI.h>
-#include "src/ASLibrary.h"
+#include "ASLibrary.h"
 #include <avr/sleep.h>
 
 

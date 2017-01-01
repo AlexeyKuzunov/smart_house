@@ -1,0 +1,20 @@
+d:\tmp\VMBuilds\SH_VS\diecimila_atmega328\Debug\SH_VS.cpp.o: \
+ d:\tmp\VMBuilds\SH_VS\diecimila_atmega328\Debug\SH_VS.cpp \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/arduino.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/binary.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/WCharacter.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/WString.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/HardwareSerial.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/Stream.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/Print.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/Printable.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/USBAPI.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/Arduino.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\variants\standard/pins_arduino.h \
+ D:\Hobby\Arduino\libraries\OneWire/OneWire.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\cores\arduino/Arduino.h \
+ D:\Hobby\Arduino\libraries\RF24/RF24_config.h \
+ C:\Users\Алексей\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.16\libraries\SPI\src/SPI.h \
+ D:\Hobby\Arduino\libraries\RF24/RF24.h \
+ D:\Hobby\Arduino\libraries\RF24/RF24_config.h \
+ d:\tmp\VMBuilds\SH_VS\diecimila_atmega328\Debug\ASLibrary.h

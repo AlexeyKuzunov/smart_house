@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rmate ./src/gpio_sun7i.cpp
+rmate ./src/gpio_sun7i.h
+rmate ./test_gpio.cpp
+# rmate ./RF24.cpp
+# rmate ./RF24_config.h
+# rmate ~/smart_house/rf24/test/arduino_rcv_irq.cpp
+

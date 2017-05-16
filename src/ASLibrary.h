@@ -7,6 +7,7 @@
 #define AS_NRF24L01_channel 77  //канал, на котором работает трансивер NRF24L01
 								//RF Channel 0 - 127 or 0 - 84 in the US, default 0.
 
+
 // Команды состоят из 1 команды и 1 параметра
 // 0 x - Перезагрузка
 // 1 x - Получить количество датчиков
@@ -15,6 +16,7 @@
 // 4 N - Получить данные с датчика N (считать из глобальных переменных)
 
 typedef struct _AS_COMMAND {
+	byte id; //идентификатор клиента. Номер ячейки с адресом канала
 	byte  Command; //Команда
 	byte  Parametr; //Параметр
 } AS_Command;
@@ -24,6 +26,7 @@ typedef struct _AS_COMMAND {
 // 1 N - Данные переданы корректны, N значение
 
 typedef struct _AS_ANSWER {
+	byte id; //идентификатор
 	byte   Status; //Статус
 	float  Value; //Значение
 	char   Comment[CommentLen]; //Описание

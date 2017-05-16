@@ -2,20 +2,37 @@
  Name:		SH_VS.ino
  Created:	14.06.2016 11:39:27
  Author:	Алексей
+
+
+
 */
 
-#include <OneWire.h>
+
 #include <RF24_config.h>
 #include <RF24.h>
 //#include <nRF24L01.h>
 #include <SPI.h>
 #include "ASLibrary.h"
 #include <avr/sleep.h>
+#include "ds18b20.h"
+
+
+/*
+NRF24L01 wiring
+
+1 GND -> GND
+2 VCC 3.3V -> 3.3V
+3 CE -> D9
+4 CSN -> D10
+5 SCK -> D13
+6 MOSI -> D11
+7 MISO -> D12
+*/
 
 
 #define NumSensors 3
 
-OneWire ds(3);      //Создаем датчик DS18B20 на 2 пине
+
 
 int Relay = 4;
 boolean stateRelay = LOW;
@@ -25,29 +42,13 @@ AS_SensorStatus MySensors[NumSensors] = {
 	0,0,"Batt_pow(V)",
 	0,0,"Swith"};
 
-RF24 radio(8, 7);
+RF24 radio(9, 10);  //CE pin, CS pin
 const uint64_t pipes[2] = { 0xF0F0F0F0E2LL, 0xF0F0F0F0E1LL };
 
 //Переключает реле
 void Switch() {
 	stateRelay = !stateRelay;
 	digitalWrite(Relay, stateRelay);
-}
-
-//Возвращает значение температуры с датчика 18B20
-float Get_18B20_Data() {
-	byte DSdata[2];
-	ds.reset();
-	ds.write(0xCC);
-	ds.write(0x44);
-	delay(1000);
-	ds.reset();
-	ds.write(0xCC);
-	ds.write(0xBE);
-	DSdata[0] = ds.read();
-	DSdata[1] = ds.read();
-	int Temp = (DSdata[1] << 8) + DSdata[0];
-	return (float)Temp / 16;
 }
 
 //Функция определения напряжения питания устройства
@@ -156,7 +157,7 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	//CalculateAllData();
+	CalculateAllData();
 	Connect();
 	Serial.println(MySensors[0].Value);
 	//Serial.println(vccRead()/1000);

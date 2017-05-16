@@ -16,6 +16,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="SH_VS.ino" />
+    <None Include="Assets\LinuxDebugger.xaml" />
+    <None Include="Assets\LocalDebugger.xaml" />
+    <None Include="Assets\linux_nmake.xaml" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.SH_VS.vsarduino.h">
@@ -24,5 +27,13 @@
     <ClInclude Include="..\src\ASLibrary.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ds18b20.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ds18b20.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

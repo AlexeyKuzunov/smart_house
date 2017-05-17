@@ -33,7 +33,6 @@ NRF24L01 wiring
 #define NumSensors 3
 
 
-
 int Relay = 4;
 boolean stateRelay = LOW;
 

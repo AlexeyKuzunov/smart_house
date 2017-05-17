@@ -16,9 +16,9 @@
 // 4 N - Получить данные с датчика N (считать из глобальных переменных)
 
 typedef struct _AS_COMMAND {
-	byte id; //идентификатор клиента. Номер ячейки с адресом канала
-	byte  Command; //Команда
-	byte  Parametr; //Параметр
+	unsigned char id; //идентификатор клиента. Номер ячейки с адресом канала
+	unsigned char  Command; //Команда
+	unsigned char  Parametr; //Параметр
 } AS_Command;
 
 // Ответы состоят из 1 статуса и 1 значения
@@ -26,8 +26,8 @@ typedef struct _AS_COMMAND {
 // 1 N - Данные переданы корректны, N значение
 
 typedef struct _AS_ANSWER {
-	byte id; //идентификатор
-	byte   Status; //Статус
+	unsigned char id; //идентификатор
+	unsigned char   Status; //Статус
 	float  Value; //Значение
 	char   Comment[CommentLen]; //Описание
 } AS_Answer;
@@ -39,7 +39,7 @@ typedef struct _AS_ANSWER {
 
 typedef struct _AS_SENSORSTATUS
 {
-	byte	Status; //Статус
+	unsigned char	Status; //Статус
 	float	Value; //Значение
 	char	Comment[CommentLen]; //Описание
 } AS_SensorStatus;

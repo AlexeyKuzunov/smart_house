@@ -1,14 +1,14 @@
 ﻿#ifndef __ASLibrary__
 #define __ASLibrary__
 
-#define CommentLen			20				//Длина комментария в сообщении
-#define RF24_CHANNEL	    76              // канал, на котором работает трансивер NRF24L01 RF channel for the sensor net, 0-127
-#define RF24_DATARATE 	    RF24_250KBPS    //RF24_250KBPS for 250kbs, RF24_1MBPS for 1Mbps, or RF24_2MBPS for 2Mbps
-#define RF24_PA_LEVEL       RF24_PA_MAX    //Sensor PA Level == RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm
-#define RF24_PA_LEVEL_GW	RF24_PA_LOW  //Gateway PA Level, defaults to Sensor net PA Level.  Tune here if using an amplified nRF2401+ in your gateway.
+#define CommentLen			20	//Длина комментария в сообщении
+#define RF24_CHANNEL	    76              	// канал, на котором работает трансивер NRF24L01 RF channel for the sensor net, 0-127
+#define RF24_DATARATE 	    RF24_250KBPS    	//RF24_250KBPS for 250kbs, RF24_1MBPS for 1Mbps, or RF24_2MBPS for 2Mbps
+#define RF24_PA_LEVEL       RF24_PA_MAX    	//Sensor PA Level == RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_HIGH=-6dBM, and RF24_PA_MAX=0dBm
+#define RF24_PA_LEVEL_GW	RF24_PA_LOW  	//Gateway PA Level, defaults to Sensor net PA Level.  Tune here if using an amplified nRF2401+ in your gateway.
 #define RF24_PAYLOAD 		5   		//Максимальный размер буфера в байтах для трансивера NRF24L01
-										//должен буть не меньше максимальной длины передаваемых данных
-										//и не больше 32 (стркутуры _AS_COMMAND и _AS_ANSWER)
+						//должен буть не меньше максимальной длины передаваемых данных
+						//и не больше 32 (стркутуры _AS_COMMAND и _AS_ANSWER)
  
 
 

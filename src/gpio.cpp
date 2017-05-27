@@ -5,7 +5,7 @@
 GPIO::GPIO(unsigned int gpio, const char *direction, const char *edge, const char *active_low){
 	int localfd, len;
 	char buf[MAX_BUF];
- 	this->pin = gpio;
+	this->pin = gpio;
 // 	DIR* dir;
  	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "gpio%d", gpio);
 // 	dir = opendir(buf);
@@ -41,7 +41,8 @@ GPIO::GPIO(unsigned int gpio, const char *direction, const char *edge, const cha
 		len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "gpio%d/active_low", gpio);
  		localfd = open(buf, O_WRONLY);
 		if (localfd < 0) {
-			perror("gpio/set-active_low");
+			//perror("gpio/set-active_low");
+			perror(buf);
 			}
 		write(localfd, active_low, strlen(active_low) + 1); 
 		close(localfd);

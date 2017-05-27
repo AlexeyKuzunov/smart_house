@@ -1,10 +1,14 @@
 #include "gpio.h"
 #include "RF24.h"
 #include "ASLibrary.h"
+#include <iostream>
+#include <cstdlib>
+
+#define ce_gpio 5 //ce пин описан в script.fex как 5 пин gpio
 
 const uint64_t pipes[2] = {0xF0F0F0F0E1LL,0xF0F0F0F0E2LL};
 
-RF24 radio(SUNXI_GPB(13), "/dev/spidev0.0");
+RF24 radio(ce_gpio, "/dev/spidev0.0");
 
 
 void init_nrf(void)
@@ -27,14 +31,51 @@ void init_nrf(void)
 	// Open pipe for reading
 	radio.openReadingPipe(0, pipes[0]);
 	radio.openReadingPipe(1, pipes[1]);
-	mkdir(DIR_PIPES, 0775);
+	
+	//mkdir(DIR_PIPES, 0775);
 	// Start listening
-	radio.startListening();
+	//radio.startListening();
 	// Dump the configuration of the rf unit for debugging
-	radio.printDetails();
+	//radio.printDetails();
+}
+
+bool set_command(AS_Command SetCommand) //отправляем команду на клиент
+{
+	radio.stopListening();
+	return(radio.write(&SetCommand, sizeof(SetCommand)));
+}
+
+bool get_answer(AS_Answer GetAnswer) //принимаем данные с клиента
+{
+	long started_time = __millis();
+	bool timeout = false;
+	radio.startListening();
+	while (!radio.available() && !timeout)
+		if (__millis() - started_time > 500) timeout = true;
+	if (timeout) printf("Failed, response timed out.\n\r");
+	else
+	{
+		radio.read(&GetAnswer, sizeof(GetAnswer));
+	}
+
 }
 
 int main(int argc, char** argv)
 {
+	AS_Command MyCommand;
+	AS_Answer MyAnswer ;
+
+	MyCommand.id = 1;
+	MyCommand.Command = 4;
+	MyCommand.Parametr = 0;
+
 	init_nrf();
+	
+	if (set_command(MyCommand)) 
+	{
+		get_answer(MyAnswer);
+		printf("[%d]/\n", MyAnswer.Value);
+	}
+
+	return 0;
 }
